@@ -12,12 +12,16 @@ var express = require('express')
   , consolidate = require('consolidate')
   , swig = require('swig')
   , parser = require('rssparser')
-  , app = express();
+  , app = express()
+  , passport = require('passport');
 
 MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     "use strict";
     if(err) throw err;
 
+    // load passport configuration
+    require('./config/passport')(passport,db);
+    
     // Register our templating engine
     app.engine('html', consolidate.swig);
     app.set('view engine', 'html');
@@ -29,11 +33,15 @@ MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     // Express middleware to populate 'req.body' so we can access POST variables
     app.use(express.bodyParser());
 
+    app.use(express.session({secret: 'insertyoursecrethere'}));
+    app.use(passport.initialize());
+    app.use(passport.session());
+    
 //    app.use(express.logger('dev'));
     // Application routes
-//    routes(app, db);
+    routes(app, db, passport);
 
-    app.get('/', routes.index);
+//    app.get('/', routes.index);
     
     app.set('port', process.env.PORT || 3000);
     app.listen(app.get('port'), function() {

@@ -11,6 +11,9 @@
     "consolidate": "~0.9.1",
     "swig": "1.3.2",
     "rssparser": "*",
-    "jade": "*"
+    "crypto": "*",
+    "passport": "~0.1.17",
+    "passport-local": "~0.1.6",
+    "bcrypt-nodejs": "latest"
   }
 }
