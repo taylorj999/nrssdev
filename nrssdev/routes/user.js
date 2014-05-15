@@ -32,7 +32,7 @@ function User(db) {
 			callback(Error("No email provided"), null);
 		}
 		
-		users.findOne({'email':email}, function(err, user) {
+		users.findOne({'local.email':email}, function(err, user) {
 			if (err) return callback(err, null);
 			
 			if (!user) {
@@ -49,10 +49,18 @@ function User(db) {
 	};
 
 	this.createUser = function(email,passwordHash,callback) {
-		var newUser = {'email':email, 'password':passwordHash};
+		var newUser = {local:{'email':email, 'password':passwordHash}};
 		users.insert(newUser,function(err,result) {
 			callback(err,result[0]);
 		});
+	};
+	
+	this.checkPassword = function(user,password) {
+		if (bcrypt.compareSync(password,user.local.password)) {
+			return true;
+		} else {
+			return false;
+		}
 	};
 	
 }

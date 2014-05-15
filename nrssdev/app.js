@@ -13,7 +13,8 @@ var express = require('express')
   , swig = require('swig')
   , parser = require('rssparser')
   , app = express()
-  , passport = require('passport');
+  , passport = require('passport')
+  , flash 	 = require('connect-flash');
 
 MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     "use strict";
@@ -36,7 +37,8 @@ MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     app.use(express.session({secret: 'insertyoursecrethere'}));
     app.use(passport.initialize());
     app.use(passport.session());
-    
+	app.use(flash()); // use connect-flash for flash messages stored in session
+
 //    app.use(express.logger('dev'));
     // Application routes
     routes(app, db, passport);
@@ -48,25 +50,3 @@ MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     	console.log('Express server listening on port ' + app.get('port'));
     });
 });
-// all environments
-//app.set('port', process.env.PORT || 3000);
-//app.set('views', __dirname + '/views');
-//app.set('view engine', 'jade');
-//app.use(express.favicon());
-//app.use(express.logger('dev'));
-//app.use(express.bodyParser());
-//app.use(express.methodOverride());
-//app.use(app.router);
-//app.use(express.static(path.join(__dirname, 'public')));
-
-// development only
-//if ('development' == app.get('env')) {
-//  app.use(express.errorHandler());
-//}
-
-//app.get('/', routes.index);
-//app.get('/users', user.list);
-
-//http.createServer(app).listen(app.get('port'), function(){
-//  console.log('Express server listening on port ' + app.get('port'));
-//});
