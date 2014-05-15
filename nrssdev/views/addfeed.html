@@ -1,0 +1,23 @@
+<html>
+<head><title>Add a feed</title></head>
+<body>
+<h1>Add a feed</h1>
+<div class="alert">{{error}}</div>
+
+	<!-- ADD FEED FORM -->
+	<form action="/addfeed" method="post">
+		<div>
+			<label>URL</label>
+			<input type="text" name="url">
+		</div>
+
+		<button type="submit">Login</button>
+	</form>
+
+	<hr>
+	<div>
+	{{data}}
+	</div>
+</div>
+</body>
+</html>

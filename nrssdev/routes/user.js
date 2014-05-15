@@ -1,6 +1,15 @@
 var bcrypt  = require('bcrypt-nodejs')
 	,ObjectId = require('mongodb').ObjectID;
 
+//user:
+//	_id:
+//	local:
+//		email:
+//		password: (hashed)
+//  feeds:[array]
+//		feed_id:
+//		name:
+
 function User(db) {
 	"use strict";
 	
