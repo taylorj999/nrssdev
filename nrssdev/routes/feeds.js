@@ -1,15 +1,17 @@
 var ObjectId = require('mongodb').ObjectID
-    , parser = require('rssparser');
+    , parser = require('rssparser')
+    , Articles = require('./articles').Articles;
 
 //feed:
 //	_id:
-//  name:
+//  title:
 //  type:
 //  feed_url:
 //  site_url:
 //  last_checked:
-//  last_changed:
+//  last_modified:
 //  description:
+//  subscribers: []
 
 function Feeds(db) {
 	"use strict";
@@ -66,9 +68,33 @@ function Feeds(db) {
 				callback(new Error("Not a valid feed url"),null);
 				return;
 			} else {
-				console.log(out);
+				var newfeed = {'type':out.type
+						      ,'title':out.title
+						      ,'description':out.description
+						      ,'feed_url':url
+						      ,'site_url':out.url
+						      ,'last_modified':out.last_modified};
+				feeds.findAndModify({'feed_url':url}
+								   ,[['_id','asc']]
+				                   ,newfeed
+				                   ,{'upsert':true,'new':true}
+				                   ,function(err,feed) {
+					if(err) {
+						callback(err,null);
+						return;
+					}
+					var articles = new Articles(db);
+					articles.upsertArticles(feed._id,out.items, function() {});
+					callback(null,feed);
+				});
 			}
-			callback(null,out);
+		});
+	};
+	
+	this.addFeedToUser = function(url, user, callback) {
+		"use strict";
+		feeds.update({'feed_url': url},{$addToSet: {'subscribers':user._id}},function(err,feed) {
+			callback(err,feed);
 		});
 	};
 }

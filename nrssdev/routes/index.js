@@ -42,14 +42,43 @@ module.exports = exports = function(app, db, passport) {
 		res.render('addfeed');
 	});
 	
-	app.post('/addfeed', function(req,res) {
+	app.post('/addfeed', isLoggedIn, function(req,res) {
 		var feeds = new Feeds(db);
 
-		feeds.newFeed(req.body.url, function(err,data) {
+		feeds.findByUrl(req.body.url,function(err, feed) {
 			if (err) {
-				res.render('addfeed',{'error':err});
+				res.render('addfeed',{'error':err.message});
+				return;
+			}
+			// if we failed to find the feed in the db, have the app grab it
+			// and add it to the database. If it's already there,
+			// just connect it to the user
+			if (feed===null) {
+				feeds.newFeed(req.body.url,function(err,newfeed) {
+					if (err) {
+						// the majority of the errors here will be invalid
+						// url formatting or inability to get the feed
+						res.render('addfeed',{'error':err.message});
+						return;
+					}
+					feeds.addFeedToUser(req.body.url, req.user, function(err,feed) {
+						if (err) {
+							res.render('addfeed',{'error':err.message});
+							return;
+						}
+						res.render('addfeed',{'message':'Added feed to account'});
+						return;
+					});
+				});
 			} else {
-				res.render('addfeed',{'data':data});
+				feeds.addFeedToUser(req.body.url, req.user, function(err,feed) {
+					if (err) {
+						res.render('addfeed',{'error':err.message});
+						return;
+					}
+					res.render('addfeed',{'message':'Added feed to account'});
+					return;
+				});
 			}
 		});
 	});
