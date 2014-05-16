@@ -97,6 +97,20 @@ function Feeds(db) {
 			callback(err,feed);
 		});
 	};
+	
+	this.getUserFeeds = function(user_id, callback) {
+		"use strict";
+		feeds.find({'subscribers':user_id}
+		          ,{'feed_url':true, 'title':true}
+		          ,{'sort':'title'})
+		     .toArray(function(err,data) {
+		        	  	if (err) {
+		        		  callback(err,null);
+		        		  return;
+		        	    }
+		        	    callback(null,data);
+		            });
+	};
 }
 
 module.exports.Feeds = Feeds;

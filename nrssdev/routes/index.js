@@ -30,7 +30,16 @@ module.exports = exports = function(app, db, passport) {
 	}));
 
 	app.get('/profile', isLoggedIn, function(req, res){
-		res.render('profile', { user: req.user});
+		var feeds = new Feeds(db);
+		
+		feeds.getUserFeeds(req.user._id, function(err, data) {
+			console.log(data);
+			var pageinfo = {'user': req.user, 'feeds': data};
+			if (err) {
+				pageinfo.error = err.message;
+			}
+			res.render('profile', pageinfo);			
+		});
 	});
 	
 	app.get('/logout', function(req,res) {
