@@ -76,7 +76,7 @@ function Feeds(db) {
 						      ,'last_modified':out.last_modified};
 				feeds.findAndModify({'feed_url':url}
 								   ,[['_id','asc']]
-				                   ,newfeed
+				                   ,{$set:newfeed}
 				                   ,{'upsert':true,'new':true}
 				                   ,function(err,feed) {
 					if(err) {
@@ -84,8 +84,13 @@ function Feeds(db) {
 						return;
 					}
 					var articles = new Articles(db);
-					articles.upsertArticles(feed._id,out.items, function() {});
-					callback(null,feed);
+					articles.upsertArticles(feed._id,out.items, function(err) {
+						if (err) {
+							callback(err,null);
+						} else {
+							callback(null,feed);
+						}
+					});
 				});
 			}
 		});
@@ -93,9 +98,11 @@ function Feeds(db) {
 	
 	this.addFeedToUser = function(url, user, callback) {
 		"use strict";
-		feeds.update({'feed_url': url},{$addToSet: {'subscribers':user._id}},function(err,feed) {
-			callback(err,feed);
-		});
+		feeds.update({'feed_url': url}
+		            ,{$addToSet: {'subscribers':user._id}}
+		            ,function(err,feed) {
+		            	callback(err,feed);
+		            });
 	};
 	
 	this.getUserFeeds = function(user_id, callback) {
