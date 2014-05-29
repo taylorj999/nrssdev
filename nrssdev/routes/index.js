@@ -1,4 +1,5 @@
-var Feeds = require('./feeds').Feeds;
+var Feeds = require('./feeds').Feeds
+   ,Articles = require('./articles');
 
 var index = function(req, res){
 	  res.render('index', { title: 'Express Swig Test', username: req.username });
@@ -53,7 +54,8 @@ module.exports = exports = function(app, db, passport) {
 	
 	app.post('/addfeed', isLoggedIn, function(req,res) {
 		var feeds = new Feeds(db);
-
+		var articles = new Articles(db);
+		
 		feeds.findByUrl(req.body.url,function(err, feed) {
 			if (err) {
 				res.render('addfeed',{'error':err.message});
@@ -64,6 +66,7 @@ module.exports = exports = function(app, db, passport) {
 			// just connect it to the user
 			if (feed===null) {
 				feeds.newFeed(req.body.url,function(err,newfeed) {
+					console.log("Up top");
 					if (err) {
 						// the majority of the errors here will be invalid
 						// url formatting or inability to get the feed
@@ -75,18 +78,31 @@ module.exports = exports = function(app, db, passport) {
 							res.render('addfeed',{'error':err.message});
 							return;
 						}
-						res.render('addfeed',{'message':'Added feed to account'});
-						return;
+						articles.populateUserArticles(feed, req.user,function(err) {
+							if (err) {
+								res.render('addfeed',{'error':err.message});
+								return;
+							}
+							res.render('addfeed',{'message':'Added feed to account'});
+							return;
+						});
 					});
 				});
 			} else {
 				feeds.addFeedToUser(req.body.url, req.user, function(err,feed) {
+					console.log("Adding feed to user");
 					if (err) {
 						res.render('addfeed',{'error':err.message});
 						return;
 					}
-					res.render('addfeed',{'message':'Added feed to account'});
-					return;
+					articles.populateUserArticles(feed, req.user,function(err) {
+						if (err) {
+							res.render('addfeed',{'error':err.message});
+							return;
+						}
+						res.render('addfeed',{'message':'Added feed to account'});
+						return;
+					});
 				});
 			}
 		});

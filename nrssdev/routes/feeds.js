@@ -1,6 +1,6 @@
 var ObjectId = require('mongodb').ObjectID
     , parser = require('rssparser')
-    , Articles = require('./articles').Articles;
+    , Articles = require('./articles');
 
 //feed:
 //	_id:
@@ -79,12 +79,13 @@ function Feeds(db) {
 				                   ,{$set:newfeed}
 				                   ,{'upsert':true,'new':true}
 				                   ,function(err,feed) {
+				                	   console.log("in newFeed findAndModify");
 					if(err) {
 						callback(err,null);
 						return;
 					}
 					var articles = new Articles(db);
-					articles.upsertArticles(feed._id,out.items, function(err) {
+					articles.upsertArticles(feed,out.items, function(err) {
 						if (err) {
 							callback(err,null);
 						} else {
@@ -98,11 +99,13 @@ function Feeds(db) {
 	
 	this.addFeedToUser = function(url, user, callback) {
 		"use strict";
-		feeds.update({'feed_url': url}
-		            ,{$addToSet: {'subscribers':user._id}}
-		            ,function(err,feed) {
-		            	callback(err,feed);
-		            });
+		feeds.findAndModify({'feed_url': url}
+						   ,[['_id','asc']]
+		                   ,{$addToSet: {'subscribers':user._id}}
+						   ,{'new':true}
+		                   ,function(err,feed) {
+		            	       callback(err,feed);
+		                    });
 	};
 	
 	this.getUserFeeds = function(user_id, callback) {

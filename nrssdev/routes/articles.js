@@ -19,51 +19,74 @@ var ObjectId = require('mongodb').ObjectID
 function Articles(db) {
 	"use strict";
 	
-	var articles = db.collection("articles");
-	var userarticles = db.collection("userarticles");
+	this.articles = db.collection("articles");
+	this.userarticles = db.collection("userarticles");
 	
-	this.populateUserArticles = function(feed,article,callback) {
-		async.map(feed.subscribers
-				 ,function(item,callback_a) {
-			  		var subsdoc = {'user_id':item,'feed_id':feed._id,'article_id':article._id};
-			  		callback_a(null,subsdoc);
-				  }
-		         ,function(err,results) {
-		        	 if (err) {
-		        		 callback(err,null);
-		        	 } else {
-		        		 async.each(results,function(result,callback_b) {
-		        			 userarticles.update(result
-		        					            ,{$set:result}
-		        			                    ,{'upsert':true}
-		        			                    ,callback_b);
-		        		 },
-		        		 function(err) { callback(err,null); });
-		        	 }
-		         });
-		
-	};
-	
-	this.upsertArticles = function(feed, data, callback) {
-		async.each(data,function(article,callback) {
-			article.feed_id = feed.feed_id;
-			articles.findAndModify({'feed_id':article.feed_id,'title':article.title}
-			                      ,[['_id','asc']]
-			                      ,{$set:article}
-			                      ,{'upsert':true,'new':true}
-			                      ,function(err,data) {
-			                    	  if (err) {
-			                    		  callback(err);
-			                    		  return;
-			                    	  } else {
-			                    		  this.populateUserArticles(feed,data,callback);
-			                    	  }
-			                      });
-			},
-			function(err) {
-				if (err) throw err;
-			});
-	};
 }
 
-module.exports.Articles = Articles;
+Articles.prototype.populateUserArticles = function populateUserArticles(feed, user, callback) {
+	var self = this;
+	self.articles.find({'feed_id':feed._id}).each(function (err, item) {
+		if (err) throw err;
+		if (item!=null) {
+			var subsdoc = {'user_id':user._id, 'feed_id':feed._id
+					      ,'article_id':item._id};
+			self.userarticles.update(subsdoc
+					           ,{$set:subsdoc}
+							   ,{'upsert':true}
+							   ,function(err) {
+								   if (err) callback(err,null);
+							   });
+		}
+	});
+	callback(null,null);
+};
+
+Articles.prototype.populateUserArticle = function populateUserArticle(feed,article,callback) {
+	var self = this;
+	if (feed.subscribers === undefined) {
+		callback(null,null);
+		return;
+	}
+	async.map(feed.subscribers
+			 ,function(item,callback_a) {
+		  		var subsdoc = {'user_id':item,'feed_id':feed._id,'article_id':article._id};
+		  		callback_a(null,subsdoc);
+			  }
+	         ,function(err,results) {
+	        	 if (err) {
+	        		 callback(err,null);
+	        	 } else {
+	        		 async.each(results,function(result,callback_b) {
+	        			 self.userarticles.update(result
+	        					            ,{$set:result}
+	        			                    ,{'upsert':true}
+	        			                    ,callback_b);
+	        		 },
+	        		 function(err) { callback(err,null); });
+	        	 }
+	         });
+	callback(null,null);
+};
+
+Articles.prototype.upsertArticles = function upsertArticles(feed, data, callback) {
+	var self = this;
+	data.forEach(function(article) {
+		article.feed_id = feed._id;
+		self.articles.findAndModify({'feed_id':article.feed_id,'title':article.title}
+		                      ,[['_id','asc']]
+		                      ,{$set:article}
+		                      ,{'upsert':true,'new':true}
+		                      ,function(err,data) {
+		                    	  console.log("erp");
+		                    	  if (err) {
+		                    		  callback(err);
+		                    	  } else {
+		                    		  self.populateUserArticle(feed,data,function (err) { if (err) callback(err); });
+		                    	  }
+		                      });
+		});
+	callback(null,null);
+};
+
+module.exports = Articles;
