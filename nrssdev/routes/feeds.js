@@ -79,7 +79,6 @@ function Feeds(db) {
 				                   ,{$set:newfeed}
 				                   ,{'upsert':true,'new':true}
 				                   ,function(err,feed) {
-				                	   console.log("in newFeed findAndModify");
 					if(err) {
 						callback(err,null);
 						return;

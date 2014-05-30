@@ -66,7 +66,6 @@ module.exports = exports = function(app, db, passport) {
 			// just connect it to the user
 			if (feed===null) {
 				feeds.newFeed(req.body.url,function(err,newfeed) {
-					console.log("Up top");
 					if (err) {
 						// the majority of the errors here will be invalid
 						// url formatting or inability to get the feed
@@ -105,6 +104,32 @@ module.exports = exports = function(app, db, passport) {
 					});
 				});
 			}
+		});
+	});
+	
+	app.get('/articles',isLoggedIn, function(req,res) {
+		var articles = new Articles(db);
+		
+		articles.getUserArticles(req.user,function(err,data) {
+			if (err) {
+				res.render('articles',{'error':err.message});
+				return;
+			}
+			res.render('articles',{'user':req.user,'articles':data});
+			return;
+		});
+	});
+	
+	app.get('/viewarticle',function(req,res) {
+		var articles = new Articles(db);
+		
+		articles.getArticle(req.query.id, function(err,data) {
+			if (err) {
+				res.render('viewarticle',{'error':err.message});
+				return;
+			}
+			res.render('viewarticle',{'user':req.user,'article':data});
+			return;
 		});
 	});
 };
