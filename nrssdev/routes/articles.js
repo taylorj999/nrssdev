@@ -33,9 +33,9 @@ Articles.prototype.getArticle = function getArticle(article_id, callback) {
 	});
 };
 
-Articles.prototype.getUserArticles = function getUserArticles(user, callback) {
+Articles.prototype.getUserArticles = function getUserArticles(user_id, callback) {
 	var self = this;
-	self.userarticles.find({'user_id':user._id}).toArray(function(err,data) {
+	self.userarticles.find({'user_id':user_id},{},{'sort':'published_at'}).toArray(function(err,data) {
 		callback(err,data);
 	});
 };
@@ -46,7 +46,9 @@ Articles.prototype.populateUserArticles = function populateUserArticles(feed, us
 		if (err) throw err;
 		if (item!=null) {
 			var subsdoc = {'user_id':user._id, 'feed_id':feed._id
-					      ,'article_id':item._id, 'title':item.title};
+					      ,'article_id':item._id, 'title':item.title
+					      ,'published_at':article.published_at
+					      ,'feed_name':feed.title};
 			self.userarticles.update(subsdoc
 					           ,{$set:subsdoc}
 							   ,{'upsert':true}
@@ -65,20 +67,22 @@ Articles.prototype.populateUserArticle = function populateUserArticle(feed,artic
 		return;
 	}
 	async.map(feed.subscribers
-			 ,function(item,callback_a) {
+			 ,function(item,callbackAsynchMap) {
 		  		var subsdoc = {'user_id':item,'feed_id':feed._id
-		  				      ,'article_id':article._id,'title':title};
-		  		callback_a(null,subsdoc);
+		  				      ,'article_id':article._id,'title':title
+		  				      ,'published_at':article.published_at
+		  				      ,'feed_name':feed.title};
+		  		callbackAsychMap(null,subsdoc);
 			  }
 	         ,function(err,results) {
 	        	 if (err) {
 	        		 callback(err,null);
 	        	 } else {
-	        		 async.each(results,function(result,callback_b) {
+	        		 async.each(results,function(result,callbackAsyncEach) {
 	        			 self.userarticles.update(result
 	        					            ,{$set:result}
 	        			                    ,{'upsert':true}
-	        			                    ,callback_b);
+	        			                    ,callbackAsychEach);
 	        		 },
 	        		 function(err) { callback(err,null); });
 	        	 }

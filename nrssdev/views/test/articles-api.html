@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+	<title>View Articles API Test Page</title>
+	<style>
+		body 		{ padding-top:80px; word-wrap:break-word; }
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script type="text/javascript">
+      $.ajaxSetup({
+         cache: false
+      });
+      $(document).ready(function() {
+         $.ajax({
+            url: "/articles-api",
+            data: {},
+            async: false,
+            dataType: "jsonp",
+            jsonp: "callback",
+            success: function(data) {
+               var status = data.status;
+               if (status === "error") {
+                  $("#alert").html(data.error);
+               } else {
+                  $("#article-summary").html(JSON.stringify(data));
+               }
+            },
+            error: function(xhr, status, error) {
+               $("#alert").html(status);
+            }
+         });
+      });
+	</script>
+</head>
+<body>
+<div class="container">
+
+	<div class="alert" id="alert"></div>
+	
+	<div class="row">
+
+		<!-- FEED INFORMATION -->
+		<div class="col-sm-6">
+		<h2 id="article-url"></h2>
+		<h3 id="article-author"></h3>
+		<div id="article-summary"></div>
+		</div>
+	</div>
+
+</div>
+</body>
+</html>

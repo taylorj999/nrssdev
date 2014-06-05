@@ -27,7 +27,7 @@ MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     app.engine('html', consolidate.swig);
     app.set('view engine', 'html');
     app.set('views', __dirname + '/views');
-
+    
     // Express middleware to populate 'req.cookies' so we can access cookies
     app.use(express.cookieParser());
 

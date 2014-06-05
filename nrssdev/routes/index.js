@@ -110,7 +110,7 @@ module.exports = exports = function(app, db, passport) {
 	app.get('/articles',isLoggedIn, function(req,res) {
 		var articles = new Articles(db);
 		
-		articles.getUserArticles(req.user,function(err,data) {
+		articles.getUserArticles(req.user._id,function(err,data) {
 			if (err) {
 				res.render('articles',{'error':err.message});
 				return;
@@ -132,6 +132,42 @@ module.exports = exports = function(app, db, passport) {
 			return;
 		});
 	});
+	
+	app.get('/viewarticle-api',isLoggedInAPI,function(req,res) {
+		var articles = new Articles(db);
+		
+		articles.getArticle(req.query.id, function(err,data) {
+			if (err) {
+				res.jsonp({'status':'error', 'error':err.message});
+				return;
+			}
+			res.jsonp({'status':'success', 'article':data});
+			return;
+		});
+	});
+	
+	app.get('/test/viewarticle-api',function(req,res) {
+		res.render('test/viewarticle-api',{'id':req.query.id});
+		return;
+	});
+	
+	app.get('/articles-api',function(req,res) {
+		var articles = new Articles(db);
+		
+		articles.getUserArticles(req.user._id,function(err,data) {
+			if (err) {
+				res.jsonp({'status':'error','error':err.message});
+				return;
+			}
+			res.jsonp({'status':'success','articles':data});
+			return;
+		});
+	});
+	
+	app.get('/test/articles-api',isLoggedIn,function(req,res) {
+		res.render('test/articles-api',{'user':req.user});
+		return;
+	});
 };
 
 //route middleware to make sure a user is logged in
@@ -143,4 +179,13 @@ function isLoggedIn(req, res, next) {
 
 	// if they aren't redirect them to the home page
 	res.redirect('/');
+}
+
+//route middleware to reject API calls if it doesn't find
+//login information
+function isLoggedInAPI(req, res, next) {
+	if (req.isAuthenticated())
+		return next();
+	
+	res.jsonp({'status':'error','error':'Not logged in.'});
 }

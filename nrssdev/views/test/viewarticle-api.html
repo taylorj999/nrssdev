@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+	<title>View Article API Test Page</title>
+	<style>
+		body 		{ padding-top:80px; word-wrap:break-word; }
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script type="text/javascript">
+      $.ajaxSetup({
+         cache: false
+      });
+      $(document).ready(function() {
+         var qDoc = {'id':'{{id}}'};
+         $.ajax({
+            url: "/viewarticle-api",
+            data: qDoc,
+            async: false,
+            dataType: "jsonp",
+            jsonp: "callback",
+            success: function(data) {
+               var status = data.status;
+               if (status === "error") {
+                  $("#alert").html(data.error);
+               } else {
+                  $("#article-url").html("<a href=\""+data.article.url+"\">"+data.article.title+"</a>");
+                  $("#article-author").html("Author: "+data.article.author);
+                  $("#article-summary").html(data.article.summary);
+               }
+            },
+            error: function(xhr, status, error) {
+               $("#alert").html(status);
+            }
+         });
+      });
+	</script>
+</head>
+<body>
+<div class="container">
+
+	<div class="alert" id="alert"></div>
+	
+	<div class="row">
+
+		<!-- ARTICLE INFORMATION -->
+		<div class="col-sm-6">
+		<h2 id="article-url"></h2>
+		<h3 id="article-author"></h3>
+		<div id="article-summary"></div>
+		</div>
+	</div>
+
+</div>
+</body>
+</html>
