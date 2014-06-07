@@ -14,7 +14,7 @@ var express = require('express')
   , parser = require('rssparser')
   , app = express()
   , passport = require('passport')
-  , flash 	 = require('connect-flash');
+  , flash = require('connect-flash');
 
 MongoClient.connect('mongodb://localhost:27017/rssdata', function(err, db) {
     "use strict";
